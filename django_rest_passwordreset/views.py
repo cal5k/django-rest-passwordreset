@@ -130,11 +130,18 @@ class ResetPasswordRequestToken(APIView):
                     # yes, already has a token, re-use this token
                     token = user.password_reset_tokens.all()[0]
                 else:
+                    # get correct ip address
+                    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+                    if x_forwarded_for:
+                        ip = x_forwarded_for.split(',')[0]
+                    else:
+                        ip = request.META.get('REMOTE_ADDR', None)
+                        
                     # no token exists, generate a new token
                     token = ResetPasswordToken.objects.create(
                         user=user,
                         user_agent=request.META['HTTP_USER_AGENT'],
-                        ip_address=request.META['HTTP_X_FORWARDED_FOR']
+                        ip_address=ip
                     )
                 # send a signal that the password token was created
                 # let whoever receives this signal handle sending the email for the password reset

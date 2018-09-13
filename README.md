@@ -107,7 +107,9 @@ def password_reset_token_created(sender, reset_password_token, *args, **kwargs):
 
 ```
 
-3. You should now be able to use the endpoints to request a password reset token via your e-mail address. 
+3. Make sure to update your ``apps.py`` file, if necessary, to import the new signals. This [blog post](https://simpleisbetterthancomplex.com/tutorial/2016/07/28/how-to-create-django-signals.html) contains an example of how to do this.
+
+4. You should now be able to use the endpoints to request a password reset token via your e-mail address. 
 If you want to test this locally, I recommend using some kind of fake mailserver (such as maildump).
 
 ## Tests

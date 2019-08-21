@@ -59,11 +59,6 @@ class ResetPasswordConfirm(APIView):
             reset_password_token.delete()
             return Response({'status': 'expired'}, status=status.HTTP_404_NOT_FOUND)
 
-        # check if old password same as new one
-        if reset_password_token.user.check_password(password):
-            reset_password_token.delete()
-            return Response({'status': 'samepassword'}, status=status.HTTP_404_NOT_FOUND)
-
         # change users password
         if reset_password_token.user.has_usable_password():
             pre_password_reset.send(sender=self.__class__, user=reset_password_token.user)

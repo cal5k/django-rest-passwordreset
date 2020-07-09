@@ -36,6 +36,9 @@ class ResetPasswordConfirm(APIView):
     renderer_classes = (renderers.JSONRenderer,)
     serializer_class = PasswordTokenSerializer
 
+    _PASSWORD_RESET_EXPIRED_MESSAGE = 'Password reset has expired, please request again or contact support for help.'
+    _PASSWORD_RESET_SAME_PASSWORD_MESSAGE = 'Passwords cannot be reused, please enter a new password.'
+
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -49,7 +52,7 @@ class ResetPasswordConfirm(APIView):
         reset_password_token = ResetPasswordToken.objects.filter(key=token).first()
 
         if reset_password_token is None:
-            return Response({'status': 'notfound'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'status': self._PASSWORD_RESET_EXPIRED_MESSAGE}, status=status.HTTP_404_NOT_FOUND)
 
         # check expiry date
         expiry_date = reset_password_token.created_at + timedelta(hours=password_reset_token_validation_time)
@@ -57,12 +60,12 @@ class ResetPasswordConfirm(APIView):
         if timezone.now() > expiry_date:
             # delete expired token
             reset_password_token.delete()
-            return Response({'status': 'expired'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'status': self._PASSWORD_RESET_EXPIRED_MESSAGE}, status=status.HTTP_404_NOT_FOUND)
 
         # check if old password same as new one
         if reset_password_token.user.check_password(password):
             reset_password_token.delete()
-            return Response({'status': 'samepassword'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'status': self._PASSWORD_RESET_SAME_PASSWORD_MESSAGE}, status=status.HTTP_404_NOT_FOUND)
 
         # change users password
         if reset_password_token.user.has_usable_password():
